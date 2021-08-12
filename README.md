@@ -30,7 +30,7 @@ npx ganache-cli --defaultBalanceEther 50000
 npx truffle test
 ```
 
-There is a unit test I've left commented out because it's very time consuming since it mints all 9999 doges to confirm the upper lower bounds, that doges will not go over, and that we don't get 0 or > 9999 tokenIds.
+There is a unit test in there that is very time consuming (the last one) since it mints all 9999 doges to confirm the upper lower bounds, that doges will not go over, and that we don't get 0 or > 9999 tokenIds; you may want to temporarily comment it out if casually updating or adding tests.
 
 ## Deploying
 
