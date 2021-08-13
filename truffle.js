@@ -20,7 +20,7 @@ module.exports = {
     mainnet: {
       provider: () => new HDWalletProvider(process.env.MNEMONIC, "https://mainnet.infura.io/v3/" + process.env.INFURA_PID),
       network_id: 1,
-      gas: 65000000,
+      gasPrice: 44000000000,
       confirmations: 3,
       timeoutBlocks: 30,
       skipDryRun: false,
