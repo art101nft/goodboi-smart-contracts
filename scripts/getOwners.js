@@ -15,7 +15,7 @@ module.exports = async function main(callback) {
     }
     console.log(`Found ${owners.length} owners!`)
     for (i = 0; i < owners.length; i++) {
-      console.log(`- ${owners[i]}`)
+      console.log(`"${owners[i]}",`)
     }
     callback(0);
   } catch (error) {
