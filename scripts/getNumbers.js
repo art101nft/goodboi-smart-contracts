@@ -7,6 +7,7 @@ module.exports = async function main(callback) {
     console.log(`RAND_PRIME: ${existingPrime}`);
     console.log(`TIMESTAMP: ${existingTimestamp}`);
     console.log(`CONTRACT_ADDRESS: ${gbs.address}`);
+    console.log(`BASE_URI: ${await gbs.baseURI()}`);
     callback(0);
   } catch (error) {
     console.error(error);
