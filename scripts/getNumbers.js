@@ -6,6 +6,7 @@ module.exports = async function main(callback) {
     const existingTimestamp = (await gbs.TIMESTAMP()).toString();
     console.log(`RAND_PRIME: ${existingPrime}`);
     console.log(`TIMESTAMP: ${existingTimestamp}`);
+    console.log(`CONTRACT_ADDRESS: ${gbs.address}`);
     callback(0);
   } catch (error) {
     console.error(error);
