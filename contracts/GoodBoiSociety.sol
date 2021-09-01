@@ -17,7 +17,7 @@ contract GoodBoiSociety is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
 
     // Define starting values for contract
     bool public saleIsActive = true;
-    string public baseURI = "ipfs://QmaWpBxEhSi1tRdjjhbGBq7evTDc5pGJfA6ryFuJ2Ai3St/";
+    string public baseURI = "ipfs://QmTnKqQ9hZWpfkp4Je8H8XNCtk7Z1mwKLsLQvcWVZti19b/";
     uint256 public RAND_PRIME;
     uint256 public TIMESTAMP;
     uint256 public constant dogePrice = 75000000000000000; // 0.075 ETH
