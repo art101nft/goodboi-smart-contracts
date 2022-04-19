@@ -11,6 +11,12 @@ contract('GoodBoiSociety', function ([owner, other]) {
   const examplePrime = new BN('911');
   const minVal = new BN('75000000000000000');
 
+  if (process.env.FULL == 'true') {
+    fullMint = true;
+  } else {
+    fullMint = false;
+  }
+
   beforeEach(async function () {
     this.gbs = await GoodBoiSociety.new({from: owner});
   });
@@ -210,24 +216,26 @@ contract('GoodBoiSociety', function ([owner, other]) {
 
   it('mintDoge function will mint only up to 9999 doges', async function () {
     this.timeout(0); // dont timeout for this long test
-    await this.gbs.setRandPrime(examplePrime);
-    for (i = 0; i < 9999; i++) {
-      let res = await this.gbs.mintDoge(1, {value: minVal});
-      let tokenIndex = (await this.gbs.totalSupply()).toString();
-      let tokenId = (await this.gbs.getTokenId(tokenIndex)).toString();
-      let timestamp = (await this.gbs.TIMESTAMP()).toString();
-      // console.log(`Minted token index ${tokenIndex} at ${tokenId}! Timestamp: ${timestamp} - Prime: ${examplePrime}`);
-      await expectEvent(
-        res, 'Transfer'
+    if (fullMint) {
+      await this.gbs.setRandPrime(examplePrime);
+      for (i = 0; i < 9999; i++) {
+        let res = await this.gbs.mintDoge(1, {value: minVal});
+        let tokenIndex = (await this.gbs.totalSupply()).toString();
+        let tokenId = (await this.gbs.getTokenId(tokenIndex)).toString();
+        let timestamp = (await this.gbs.TIMESTAMP()).toString();
+        // console.log(`Minted token index ${tokenIndex} at ${tokenId}! Timestamp: ${timestamp} - Prime: ${examplePrime}`);
+        await expectEvent(
+          res, 'Transfer'
+        );
+      }
+      await expect(
+        (await this.gbs.totalSupply()).toString()
+      ).to.equal('9999');
+      await expectRevert(
+        this.gbs.mintDoge(1, {value: minVal}),
+        'Purchase would exceed max supply of Doges'
       );
     }
-    await expect(
-      (await this.gbs.totalSupply()).toString()
-    ).to.equal('9999');
-    await expectRevert(
-      this.gbs.mintDoge(1, {value: minVal}),
-      'Purchase would exceed max supply of Doges'
-    );
   });
 
 });
