@@ -9,6 +9,7 @@ contract('GoodBoiSociety', function ([owner, other]) {
 
   const examplePrime = new BN('911');
   const minVal = new BN('75000000000000000');
+  const minValInt = '75000000000000000';
 
   if (process.env.FULL == 'true') {
     fullMint = true;
@@ -96,9 +97,33 @@ contract('GoodBoiSociety', function ([owner, other]) {
 
   // refuel checks
   it('contract can refuel if not enough balance', async function () {
+    // send .225 ether to original contract
+    // mint 1 doge on minter contract
+    // should refuel on empty balance the .225 - .075 for 1 mint
+    // original contract balance will be 0
+    // minter contract balance will be .15
+    let weiAmt = web3.utils.toWei('.225', 'ether');
+    let weiAmtNew = web3.utils.toWei('.15', 'ether');
+    let allAmt = web3.utils.toWei('.3', 'ether');
     await this.gbs.transferOwnership(this.gbsm.address);
-    web3.eth.sendTransaction({from: owner, to: this.gbsm.address, value: web3.utils.toWei('.225', 'ether')});
-    web3.eth.getBalance(this.gbsm.address);
+    await this.gbs.mintDoge(3, {value: weiAmt});
+    await this.gbsm.setMintable(true);
+    await this.gbsm.mint(1);
+    // .225, .075
+    await expect(
+      await web3.eth.getBalance(this.gbsm.address)
+    ).to.equal(weiAmt);
+    await expect(
+      await web3.eth.getBalance(this.gbs.address)
+    ).to.equal(minValInt);
+    await this.gbsm.mint(3);
+    // 0, .3
+    await expect(
+      await web3.eth.getBalance(this.gbsm.address)
+    ).to.equal('0');
+    await expect(
+      await web3.eth.getBalance(this.gbs.address)
+    ).to.equal(allAmt);
   })
 
   // minting checks
@@ -118,60 +143,55 @@ contract('GoodBoiSociety', function ([owner, other]) {
     );
   });
 
-  // it('mintDoge function will revert if not enough ETH sent', async function () {
-  //   await this.gbs.setRandPrime(examplePrime);
-  //   await expectRevert(
-  //     this.gbs.mintDoge(1, {value: minVal * .99}),
-  //     'Ether value sent is not correct'
-  //   );
-  //   await expectRevert(
-  //     this.gbs.mintDoge(5, {value: (minVal * 5) * .99}),
-  //     'Ether value sent is not correct'
-  //   );
-  // });
-  //
-  // it('mintDoge function will loop and mint appropriate amount of doges', async function () {
-  //   await this.gbs.setRandPrime(examplePrime);
-  //   await this.gbs.mintDoge(20, {value: minVal * 20})
-  //   await expect(
-  //     (await this.gbs.totalSupply()).toString()
-  //   ).to.equal('20');
-  //   await this.gbs.mintDoge(20, {value: minVal * 20})
-  //   await expect(
-  //     (await this.gbs.totalSupply()).toString()
-  //   ).to.equal('40');
-  //   await this.gbs.mintDoge(5, {value: minVal * 5})
-  //   await expect(
-  //     (await this.gbs.totalSupply()).toString()
-  //   ).to.equal('45');
-  //   await this.gbs.mintDoge(1, {value: minVal})
-  //   await expect(
-  //     (await this.gbs.totalSupply()).toString()
-  //   ).to.equal('46');
-  // });
-  //
-  // it('mintDoge function will mint only up to 9999 doges', async function () {
-  //   this.timeout(0); // dont timeout for this long test
-  //   if (fullMint) {
-  //     await this.gbs.setRandPrime(examplePrime);
-  //     for (i = 0; i < 9999; i++) {
-  //       let res = await this.gbs.mintDoge(1, {value: minVal});
-  //       let tokenIndex = (await this.gbs.totalSupply()).toString();
-  //       let tokenId = (await this.gbs.getTokenId(tokenIndex)).toString();
-  //       let timestamp = (await this.gbs.TIMESTAMP()).toString();
-  //       // console.log(`Minted token index ${tokenIndex} at ${tokenId}! Timestamp: ${timestamp} - Prime: ${examplePrime}`);
-  //       await expectEvent(
-  //         res, 'Transfer'
-  //       );
-  //     }
-  //     await expect(
-  //       (await this.gbs.totalSupply()).toString()
-  //     ).to.equal('9999');
-  //     await expectRevert(
-  //       this.gbs.mintDoge(1, {value: minVal}),
-  //       'Purchase would exceed max supply of Doges'
-  //     );
-  //   }
-  // });
+  it('mint function will loop and mint appropriate amount of doges', async function () {
+    await expect(
+      (await this.gbs.totalSupply()).toString()
+    ).to.equal('1');
+    await this.gbs.transferOwnership(this.gbsm.address);
+    await this.gbsm.setMintable(true);
+    await this.gbsm.mint(1);
+    await this.gbsm.mint(1);
+    await expect(
+      (await this.gbs.totalSupply()).toString()
+    ).to.equal('3');
+    await this.gbsm.mint(1);
+    await expect(
+      (await this.gbs.totalSupply()).toString()
+    ).to.equal('4');
+  });
+
+  it('mint function will mint 9999 doges and then pause', async function () {
+    this.timeout(0); // dont timeout for this long test
+    if (fullMint) {
+      let weiAmt = web3.utils.toWei('.225', 'ether');
+      await this.gbs.mintDoge(3, {value: weiAmt});
+      await this.gbs.transferOwnership(this.gbsm.address);
+      await this.gbsm.setMintable(true);
+      for (i = 0; i < 3332; i++) {
+        let res = await this.gbsm.mint(3);
+        let supply = (await this.gbs.totalSupply()).toString();
+        console.log(supply);
+      }
+      await expect(
+        (await this.gbs.totalSupply()).toString()
+      ).to.equal('9997');
+      await expectRevert(
+        await this.gbsm.mint(3),
+        'Would exceed max supply.'
+      );
+      await this.gbsm.mint(2);
+      await expect(
+        (await this.gbs.totalSupply()).toString()
+      ).to.equal('9999');
+      await expect(
+        await this.gbsm.MINTABLE()
+      ).to.equal(false);
+      // transfer ownership back to the deployer
+      await this.gbsm.reclaimOwnership();
+      await expect(
+        await this.gbs.owner()
+      ).to.equal(owner);
+    }
+  });
 
 });
